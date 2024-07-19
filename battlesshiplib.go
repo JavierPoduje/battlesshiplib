@@ -1,21 +1,30 @@
 package battlesshiplib
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
 )
 
 type Redis struct {
-	rdb *redis.Client
-	ctx context.Context
+	rdb    *redis.Client
+	ctx    context.Context
+	stream bytes.Buffer
+	dec    *gob.Decoder
+	enc    *gob.Encoder
 }
 
 func NewRedis() *Redis {
+	s := bytes.Buffer{}
 	return &Redis{
-		rdb: Connect(),
-		ctx: context.Background(),
+		rdb:    Connect(),
+		ctx:    context.Background(),
+		stream: s,
+		dec:    gob.NewDecoder(&s),
+		enc:    gob.NewEncoder(&s),
 	}
 }
 
@@ -30,7 +39,7 @@ func Connect() *redis.Client {
 	return rdb
 }
 
-func (r Redis) Set(key string, value string) {
+func (r Redis) Set(key string, value any) {
 	_, err := r.rdb.Set(r.ctx, key, value, 0).Result()
 	if err != nil {
 		fmt.Println("Can't set key:", err)
@@ -67,4 +76,22 @@ func (r Redis) Del(key string, value string) {
 		return
 	}
 	fmt.Println("Clave eliminada")
+}
+
+func (r Redis) Encode(value any) ([]byte, error) {
+	var buf bytes.Buffer
+	err := r.enc.Encode(value)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (r Redis) Decode(value []byte) (any, error) {
+	var output any
+	err := r.dec.Decode(&output)
+	if err != nil {
+		return output, err
+	}
+	return output, nil
 }
