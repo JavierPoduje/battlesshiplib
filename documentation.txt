@@ -1,0 +1,33 @@
+enum Orientation {
+  0 = "up",
+  1 = "rigth",
+  2 = "down",
+  3 = "left"
+}
+
+type Coordinate {
+  x: uint8;
+  y: uint8;
+}
+
+type Ship {
+  length: uint8;
+  origin: Coordinate;
+  orientation: Orientation;
+  hits: number;
+  //computed alive -> hits === length;
+}
+
+type Board {
+  ships: Ship[];
+  shots: Coordinate[];
+  width: uint8;
+  height: uint8;
+}
+
+type BattleshipState {
+  firstPlayer: Board;
+  secondPlayer: Board;
+  isFirstPlayerTurn: boolean;
+  phase: "setup" | "playing" | "finished";
+}

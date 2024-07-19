@@ -1,11 +1,70 @@
 package battlesshiplib
 
-import "fmt"
+import (
+	"context"
+	"fmt"
 
-func Foo() {
-	fmt.Println("foo")
+	"github.com/go-redis/redis/v8"
+)
+
+type Redis struct {
+	rdb *redis.Client
+	ctx context.Context
 }
 
-func Bar() {
-	fmt.Println("bar")
+func NewRedis() *Redis {
+	return &Redis{
+		rdb: Connect(),
+		ctx: context.Background(),
+	}
+}
+
+func Connect() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	//defer rdb.Close()
+
+	return rdb
+}
+
+func (r Redis) Set(key string, value string) {
+	_, err := r.rdb.Set(r.ctx, key, value, 0).Result()
+	if err != nil {
+		fmt.Println("Can't set key:", err)
+		return
+	}
+}
+
+func (r Redis) Ping() {
+	pong, err := r.rdb.Ping(r.ctx).Result()
+	if err != nil {
+		fmt.Println("Cannot connect to redis:", err)
+		return
+	}
+	fmt.Println("Redis client started:", pong)
+}
+
+func (r Redis) Get(key string) any {
+	val, err := r.rdb.Get(r.ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			fmt.Println("La clave no existe")
+		} else {
+			fmt.Println("No se pudo obtener la clave:", err)
+		}
+		return nil
+	}
+	return val
+}
+
+func (r Redis) Del(key string, value string) {
+	err := r.rdb.Del(r.ctx, "key").Err()
+	if err != nil {
+		fmt.Println("No se pudo eliminar la clave:", err)
+		return
+	}
+	fmt.Println("Clave eliminada")
 }
