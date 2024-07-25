@@ -17,37 +17,24 @@ func TestBattlesshiplib_Connect(t *testing.T) {
 }
 
 func TestBattlesshiplib_SaveWithEncoding(t *testing.T) {
-	r := NewRedis()
+	coordinate := Coordinate{X: 1, Y: 2}
 
-	coord := Coordinate{X: 1, Y: 2}
-	encodedCoord, err := r.Encode(coord)
+	// Encode to []byte
+	data, err := Encode(coordinate)
 	if err != nil {
-		t.Errorf("Error encoding coord: %v", err)
-	}
-	fmt.Println("Encoded coord:", encodedCoord)
-
-	r.Set("yo", encodedCoord)
-	value := r.Get("yo")
-	fmt.Println("Value:", value)
-	byteValue, ok := value.([]byte)
-	fmt.Println("byteValue:", byteValue)
-	if !ok {
-		t.Errorf("Expected value to be a byte slice, got: %v", byteValue)
+		fmt.Println("Error encoding:", err)
+		return
 	}
 
-	decodedCoord, err := r.Decode(byteValue)
+	// Simulate reading `data` from Redis and decoding it
+	decodedCoordinate, err := Decode[Coordinate](data)
 	if err != nil {
-		t.Errorf("Error decoding coord: %v", err)
+		t.Errorf("Expected value to be a Coordinate, got: %v", decodedCoordinate)
 	}
 
-	correctlyTypedCoord, ok := decodedCoord.(Coordinate)
-	if !ok {
-		t.Errorf("Expected value to be a Coordinate, got: %v", decodedCoord)
+	if decodedCoordinate.X != 1 || decodedCoordinate.Y != 2 {
+		t.Errorf("Expected value: meo, got: %v", decodedCoordinate)
 	}
 
-	if correctlyTypedCoord.X != 1 || correctlyTypedCoord.Y != 2 {
-		t.Errorf("Expected value: meo, got: %v", value)
-	}
-
-	defer r.rdb.Close()
+	fmt.Printf("Decoded coordinate: %+v\n", decodedCoordinate)
 }

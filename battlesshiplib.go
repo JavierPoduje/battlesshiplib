@@ -10,21 +10,14 @@ import (
 )
 
 type Redis struct {
-	rdb    *redis.Client
-	ctx    context.Context
-	stream bytes.Buffer
-	dec    *gob.Decoder
-	enc    *gob.Encoder
+	rdb *redis.Client
+	ctx context.Context
 }
 
 func NewRedis() *Redis {
-	s := bytes.Buffer{}
 	return &Redis{
-		rdb:    Connect(),
-		ctx:    context.Background(),
-		stream: s,
-		dec:    gob.NewDecoder(&s),
-		enc:    gob.NewEncoder(&s),
+		rdb: Connect(),
+		ctx: context.Background(),
 	}
 }
 
@@ -78,18 +71,22 @@ func (r Redis) Del(key string, value string) {
 	fmt.Println("Clave eliminada")
 }
 
-func (r Redis) Encode(value any) ([]byte, error) {
+func Encode[T any](value T) ([]byte, error) {
 	var buf bytes.Buffer
-	err := r.enc.Encode(value)
+
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(value)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (r Redis) Decode(value []byte) (any, error) {
-	var output any
-	err := r.dec.Decode(&output)
+func Decode[T any](value []byte) (T, error) {
+	var output T
+
+	decoder := gob.NewDecoder(bytes.NewReader(value))
+	err := decoder.Decode(&output)
 	if err != nil {
 		return output, err
 	}
