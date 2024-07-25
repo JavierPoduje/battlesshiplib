@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -32,12 +33,13 @@ func Connect() *redis.Client {
 	return rdb
 }
 
-func (r Redis) Set(key string, value any) {
-	_, err := r.rdb.Set(r.ctx, key, value, 0).Result()
+func (r Redis) Set(key string, value any, expiration time.Duration) error {
+	_, err := r.rdb.Set(r.ctx, key, value, expiration).Result()
 	if err != nil {
 		fmt.Println("Can't set key:", err)
-		return
+		return err
 	}
+	return nil
 }
 
 func (r Redis) Ping() {
@@ -49,7 +51,7 @@ func (r Redis) Ping() {
 	fmt.Println("Redis client started:", pong)
 }
 
-func (r Redis) Get(key string) any {
+func (r Redis) Get(key string) (string, error) {
 	val, err := r.rdb.Get(r.ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -57,9 +59,9 @@ func (r Redis) Get(key string) any {
 		} else {
 			fmt.Println("No se pudo obtener la clave:", err)
 		}
-		return nil
+		return val, err
 	}
-	return val
+	return val, nil
 }
 
 func (r Redis) Del(key string, value string) {
