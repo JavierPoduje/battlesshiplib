@@ -14,6 +14,8 @@ type Coordinate struct {
 	Y uint8
 }
 
+// TODO: computed player-alive -> every-ship-hits === every-ship-length
+
 type Ship struct {
 	// computed alive -> hits === length
 	Length      uint8
@@ -35,6 +37,12 @@ const (
 	Setup Phase = iota
 	Playing
 	Finished
+)
+
+type PlayerSetup byte
+const (
+	IsFirstPlayerReady PlayerSetup = iota
+	IsSecondPlayerReady
 )
 
 type BattleshipState struct {
