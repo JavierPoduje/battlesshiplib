@@ -16,14 +16,6 @@ type Coordinate struct {
 
 // TODO: computed player-alive -> every-ship-hits === every-ship-length
 
-type Ship struct {
-	// computed alive -> hits === length
-	Length      uint8
-	Origin      Coordinate
-	Orientation Orientation
-	Hits        uint8
-}
-
 type Board struct {
 	Ships  []Ship
 	Shots  []Coordinate
